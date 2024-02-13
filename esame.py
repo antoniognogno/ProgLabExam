@@ -28,6 +28,8 @@ class CSVTimeSeriesFile:
 
     def get_data(self):
 
+        count = 0
+        
         #verifico che il file CSV esista e sia leggibile, altrimenti alzo un eccezione
         try:
             file = open(self.name, 'r')
@@ -62,6 +64,46 @@ class CSVTimeSeriesFile:
                 else: 
                     print('Errore, pattern data errato')
                     continue
+
+                # print(elements[0])
+                anno_mese = elements[0].split('-')
+                # print(anno_mese)
+                
+                anno = int(anno_mese[0])
+                mese = int(anno_mese[1])
+
+                # print(anno)
+                # print(mese)
+
+                #siamo alla prima iterazione
+                if count == 0:
+                    anno_max = anno
+                    mese_max = mese
+
+                else:
+                    if anno < anno_max:
+                        raise ExamException("Errore: Non è ordinata: Anno \"{}\" è minore di Anno Massimo \"{}\"".format(anno, anno_max))
+
+                    if anno == anno_max:
+                        if mese < mese_max:
+                            raise ExamException("Errore: Non è ordinata: Anno \"{}\" è uguale a Anno Massimo \"{}\", ma Mese \"{}\" è minore di Mese Massimo \"{}\"".format(anno, anno_max, mese, mese_max))
+    
+                        if mese == mese_max:
+                            raise ExamException("Errore: Ripetizione: Anno è uguale: Anno \"{}\", Anno Massimo \"{}\" e anche il Mese \"{}\" è uguale a Mese Massimo \"{}\"".format(anno, anno_max, mese, mese_max))
+    
+                        if mese > mese_max:
+                            mese_max = mese
+
+                    if anno > anno_max:
+                        anno_max = anno
+                        mese_max = mese
+                
+                count+=1
+
+                # print('Max anno: {}'.format(anno_max))
+                # print('Max mese: {}'.format(mese_max))
+                
+
                 
                 #lista da append a data, comprende solo la data e il numero ignorando la presenza di                    altri elementi nella riga, se trova i primi due, l'iterazione continua
                 final_elements = []
@@ -88,6 +130,12 @@ class CSVTimeSeriesFile:
 #in generale, ho considerato che se non ci sono misurazioni per un intero anno, lo rimuovo dal dizionario, in quanto in ogni caso va ignorato
 
 def compute_increments(time_series, first_year, last_year):
+
+    #verifico che i parametri first_year e last_year siano stringhe altrimenti alzo un'eccezione
+    if not isinstance(first_year, str) or not isinstance(last_year, str):
+        raise ExamException("Errore: Uno o più parametri passati in input come intervallo, non è una stringa.")
+
+    
     # Creazione del nuovo dizionario con le differenze tra le medie degli anni nell'intervallo
     intervalli_valori = {}
 
@@ -106,14 +154,12 @@ def compute_increments(time_series, first_year, last_year):
         # Aggiunta della chiave e della media dei valori al nuovo dizionario
         anno_media[anno] = media_valori_annua
 
-    # print(anno_media)
 
     #ora prendo l'intervallo di anni voluto dal dizionario
 
-    # Itera attraverso le chiavi del dizionario originale
-
     #anni è una lista che contiene tutte le chiavi (anni) del dizionario che contiene anni e media annua, dove non sono presenti anni che avevano valori nulli precedentemente
     anni = list(anno_media.keys())
+        
     #usiamo len anni - 1 perchè avendo anni consecutivi (utilizzando il i + 1) rischiamo di andare oltre alla lunghezza della lista e avere errori se non facessimo in questo modo
     for i in range(len(anni) - 1):
         #anno iniziale e finale saranno due anni consecutivi
@@ -193,9 +239,9 @@ def verifica_pattern(data):
 # Esempio di utilizzo
 
 #testing
-time_series_file = CSVTimeSeriesFile(name='dataProva.csv')
+time_series_file = CSVTimeSeriesFile(name='data.csv')
 time_series = time_series_file.get_data()
 print(time_series)
 
-dizionario = compute_increments(time_series, '1949', '1953')
+dizionario = compute_increments(time_series, '1949', '1952')
 print(dizionario)
