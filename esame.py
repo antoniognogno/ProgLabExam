@@ -1,9 +1,19 @@
+#Per ovviare al problema delle date in ordine crescente, ho pensato di tenere traccia di un max tra le date, e se andando avanti questo valore NON viene superato, vuol dire che c'è una data fuori posto, e quindi alzo un eccezione.
+
+
+#==============================
+#  Libreria per regex, utilizzata in get_data() per verificare il pattern della data "YYYY-MM"
+#==============================
+import re
+
 #==============================
 #  Classe ExamException da usare per istanziare eccezioni
 #==============================
 
 class ExamException(Exception):
     pass
+
+
 
 #==============================
 #  Classe per file CSV
@@ -37,15 +47,21 @@ class CSVTimeSeriesFile:
             # dall'ultimo elemento con la funzione strip():
             elements[-1] = elements[-1].strip()
             
-            # Se NON sto processando l'intestazione...
+            # Se non sto processando l'intestazione
             if elements[0] != 'Date':
-                try:
-                    elements[1] = int(elements[1])
-                except Exception as e:
-                    print('Errore in conversione del valore "{}" a numerico: "{}"'.format(elements[1], e))
-                    #continue utilizzato per saltare l'iterazione in cui non è possibile avere tipo di                      dato int, senza bloccare il codice
+                
+                #Se la data non esiste (stringa vuota, caratteri speciali, non rispecchia il pattern "YYYY-MM")
+                if verifica_pattern(elements[0]):
+                    try:
+                        #Conversione valore in intero
+                        elements[1] = int(elements[1])
+                    except Exception as e:
+                        print('Errore in conversione del valore "{}" a numerico: "{}"'.format(elements[1], e))
+                        #continue utilizzato per saltare l'iterazione in cui non è possibile avere tipo di dato int, senza bloccare il codice
+                        continue
+                else: 
+                    print('Errore, pattern data errato')
                     continue
-
                 
                 #lista da append a data, comprende solo la data e il numero ignorando la presenza di                    altri elementi nella riga, se trova i primi due, l'iterazione continua
                 final_elements = []
@@ -61,6 +77,9 @@ class CSVTimeSeriesFile:
 
         # Quando ho processato tutte le righe, ritorno i dati
         return data
+
+
+
 
 #==============================
 #  Funzione per il calcolo
@@ -115,6 +134,8 @@ def compute_increments(time_series, first_year, last_year):
     return intervalli_valori
 
 
+
+
 #==============================
 #  Funzione ausiliaria per il semplificare il calcolo della media per ogni anno
 #  Rende l'array di array
@@ -123,6 +144,7 @@ def compute_increments(time_series, first_year, last_year):
 def dizionario_anno_valori(time_series):
 
     #In questa funzione non è necessario tenere conto se un mese non presenta alcun dato, in quanto successivamente la media verrà calcolata in base ai dati ottenuti e non in base al numero del mese
+
     
     dizionario_risultante = {}
 
@@ -130,7 +152,7 @@ def dizionario_anno_valori(time_series):
     for sotto_array in time_series:
 
         #time_series è del tipo [['1949-01', 112], ['1949-03', 132], ...
-        #Per facilità di comprensione ho utilizzato una variabile d'appoggio chiamata valore che indica nell'esempio            #sopra 112, 132, ovvero i valori per ogni data (anno-mese)
+        #Per facilità di comprensione ho utilizzato una variabile d'appoggio chiamata valore che indica nell'esempi sopra 112, 132, ovvero i valori per ogni data (anno-mese)
         valore = sotto_array[1]
         
         # Estraiamo l'anno e il mese dalla data nel formato "anno-mese". Ovvero [['1949-01', /], ['1949-03', /], ...
@@ -150,12 +172,30 @@ def dizionario_anno_valori(time_series):
 
     return dizionario_risultante
 
+
+
+#==============================
+#  Funzione ausilaria per verificare la correttezza del pattern data "YYYY-MM" tramite regex
+#==============================
+
+def verifica_pattern(data):
+
+    #r, sta per 'raw', quindi i caratteri venogno presi letteralmente e non come escape (\), \d{4} \d indica cifre decimale [0-9], {4} il numero di cifre che si aspetta di quel tipo. - indica semplicemente il carattere trattino. Mentre ^ e $ indicano rispettivamente l'inizio e la fine della riga
+    pattern = re.compile(r'^\d{4}-\d{2}$')
+    if pattern.match(data):
+        return True
+    else:
+        return False
+
+
+
+
 # Esempio di utilizzo
 
 #testing
-time_series_file = CSVTimeSeriesFile(name='data.csv')
+time_series_file = CSVTimeSeriesFile(name='dataProva.csv')
 time_series = time_series_file.get_data()
-# print(time_series)
+print(time_series)
 
-dizionario = compute_increments(time_series, '1949', '1950')
+dizionario = compute_increments(time_series, '1949', '1953')
 print(dizionario)
