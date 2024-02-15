@@ -16,6 +16,9 @@
 #CASO 4
 #Gestione caso in cui last_year è maggiore di first_year passati come parametri di compute_elements. Li inverto in modo che funzioni lo stesso
 
+#CASO 5
+#Gestione anche che l'anno sia diverso da 0 e che il mese sia compreso fra 1 e 12, altrimenti ignora il dato
+
 #==============================
 #  Libreria per regex, utilizzata in get_data() per verificare il pattern della data "YYYY-MM"
 #==============================
@@ -80,7 +83,22 @@ class CSVTimeSeriesFile:
                             #se il valore è negativo, lo saltiamo
                             if elements[1] < 0:
                                 continue
+
+
+                            #Verifica che l'anno sia diverso da 0 e che il mese sia compreso fra 1 e 12, altrimenti ignora il dato
+                        
+                            verifica_data_diverso_da_zero = elements[0].split('-')
+                            verifica_anno_diverso_da_zero = int(verifica_data_diverso_da_zero[0])
+                            verifica_mese_coerente = int(verifica_data_diverso_da_zero[1])
+                            if verifica_anno_diverso_da_zero == 0:
+                                continue
+
+                            if verifica_mese_coerente <= 0 or verifica_mese_coerente > 12:
+                                continue
                                 
+
+
+                    
                     except Exception as e:
                         # print('Errore in conversione del valore "{}" a numerico: "{}"'.format(elements[1], e))
 
@@ -89,6 +107,7 @@ class CSVTimeSeriesFile:
                             anno_vuoto_pulito = elements[0].split('-')[0]
                             if anno_vuoto_pulito not in anni_vuoti:
                                 anni_vuoti.append(anno_vuoto_pulito)
+                        
 
                         
                         #continue utilizzato per saltare l'iterazione in cui non è possibile avere tipo di dato int, senza bloccare il codice
@@ -300,7 +319,7 @@ def verifica_pattern(data):
 # Esempio di utilizzo
 # time_series_file = CSVTimeSeriesFile(name='dataProva.csv')
 # time_series = time_series_file.get_data()
-# print(time_series)
+# # print(time_series)
 
-# dizionario = compute_increments(time_series, '1954', '1949')
+# dizionario = compute_increments(time_series, '1960', '1950')
 # print(dizionario)
