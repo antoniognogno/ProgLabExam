@@ -13,6 +13,8 @@
 #CASO 3
 #se last year passato come parameteo non ha dati al suo interno, interrompe il ciclo. Casistica intervallo '49-'52, dati mancanti 1950 e 1952. Ideologicamente dovrebbe restituire 1949-1950 1950-1951 1951-1952. Ma dato che mancano quei due anni deve restituire 1949-1951 e basta. Questo controllo impedisce di memorizzare anche 1951-1953 che andrebbe oltre il limite alto imposto
 
+#CASO 4
+#Gestione caso in cui last_year è maggiore di first_year passati come parametri di compute_elements. Li inverto in modo che funzioni lo stesso
 
 #==============================
 #  Libreria per regex, utilizzata in get_data() per verificare il pattern della data "YYYY-MM"
@@ -157,8 +159,11 @@ def compute_increments(time_series, first_year, last_year):
     if not isinstance(first_year, str) or not isinstance(last_year, str):
         raise ExamException("Errore : Uno o più parametri passati in input come intervallo, non è una stringa.")
 
-
-
+    #se i parametri inseriti sono il primo più grande dell'altro o se l'ultimo è più piccolo dell'altro li inverte, in modo da non bloccare il programma ma continuare lo stesso
+    if int(first_year) > int(last_year) :
+        tmp = first_year
+        first_year = last_year
+        last_year = tmp
     
     # Creazione del nuovo dizionario con le differenze tra le medie degli anni nell'intervallo
     intervalli_valori = {}
@@ -297,5 +302,5 @@ def verifica_pattern(data):
 # time_series = time_series_file.get_data()
 # print(time_series)
 
-# dizionario = compute_increments(time_series, '1949', '1960')
+# dizionario = compute_increments(time_series, '1954', '1949')
 # print(dizionario)
